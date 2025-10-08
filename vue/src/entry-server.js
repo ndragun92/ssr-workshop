@@ -1,4 +1,5 @@
 import { createApp } from './main'
+import { renderToString } from 'vue/server-renderer'
 
 /**
  * @param {string} _url
@@ -12,9 +13,8 @@ export async function render(_url) {
   // components that have been instantiated during this render call.
   const ctx = {}
 
-  // TODO: Render the app to a string using Vue
-  // Hint: Use renderToString() — https://vuejs.org/guide/scaling-up/ssr.html
-  const html = null // Replace this line
+  // Render the app to a string using Vue
+  const html = await renderToString(app, ctx)
 
   return { html }
 }

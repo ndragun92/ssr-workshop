@@ -45,23 +45,26 @@ app.use('*all', async (req, res) => {
       // Always read fresh template in development
       template = await fs.readFile('./index.html', 'utf-8')
       template = await vite.transformIndexHtml(url, template)
-      // TODO: Load the server entry module and get the render function
-      // Hint: Use vite.ssrLoadModule() to load '/src/entry-server.js' — https://vite.dev/guide/ssr.html
-      render = null // Replace this line
+      // Load the server entry module and get the render function
+      // https://vite.dev/guide/ssr.html
+      const mod = await vite.ssrLoadModule('/src/entry-server.js')
+      render = mod.render
     } else {
       template = templateHtml
-      // TODO: Import the built server entry module and get the render function
-      // Hint: Use a dynamic import() to load the built server entry from ./dist/server/
-      render = null // Replace this line
+      // Import the built server entry module and get the render function
+      const mod = await import('./dist/server/entry-server.js')
+      render = mod.render
     }
 
-    // TODO: Call the render function with the URL to get the rendered content
-    const rendered = null // Replace this line
+    // Call the render function with the URL to get the rendered content
+    const { html, head } = await render(url)
 
-    // TODO: Replace the placeholders in the HTML template with the rendered content
-    const html = template
+    // Replace the placeholders in the HTML template with the rendered content
+    const fullHtml = template
+      .replace('<!--app-head-->', head || '')
+      .replace('<!--app-html-->', html)
 
-    res.status(200).set({ 'Content-Type': 'text/html' }).send(html)
+    res.status(200).set({ 'Content-Type': 'text/html' }).send(fullHtml)
   } catch (e) {
     vite?.ssrFixStacktrace(e)
     console.log(e.stack)
